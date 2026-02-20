@@ -1,0 +1,99 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+// Looking for ways to speed up your queries, or scale easily with your serverless or edge functions?
+// Try Prisma Accelerate: https://pris.ly/cli/accelerate-init
+
+generator client {
+  provider = "prisma-client-js"
+  
+}
+
+datasource db {
+  provider = "postgresql"
+  
+}
+
+model User{
+  id   Int @id @default(autoincrement())
+  name String
+  email String @unique
+  password String
+  techStack  String[]
+  bio        String?
+  location   String?
+  linkdin    String?
+  github     String?
+  
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+
+  memberShips GroupMember[]
+  codeVersion CodeVersion[]
+}
+
+model Group{
+  id   Int @id  @default(autoincrement())
+  name  String
+  description  String
+  
+  isPublic    Boolean @default(true)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  members  GroupMember[]
+  roomCode RoomCode?
+}
+
+enum Roles {
+  ADMIN
+  EDITOR
+  VIEWER
+}
+
+model GroupMember{
+  id  Int @id @default(autoincrement())
+  role  String  
+
+  userId   Int
+  groupId  Int
+
+  user  User @relation(fields: [userId],references: [id],onDelete: Cascade)
+  group Group @relation(fields: [groupId],references: [id],onDelete: Cascade)
+
+  @@unique([userId,groupId])
+}
+
+
+model RoomCode{
+  id   Int  @id @default(autoincrement())
+
+  code      String   @db.Text
+  language  String
+
+  groupId   Int  @unique
+  group     Group @relation(fields: [groupId],references: [id],onDelete: Cascade)
+
+  createdAt  DateTime  @default(now())
+  updatedAt  DateTime  @updatedAt
+
+  codeVersion CodeVersion[]
+}
+
+model CodeVersion {
+  id         Int      @id @default(autoincrement())
+  code       String   @db.Text
+  language   String
+
+  roomCodeId Int
+  roomCode   RoomCode @relation(fields: [roomCodeId], references: [id], onDelete: Cascade)
+
+  createdBy  Int
+  user       User     @relation(fields: [createdBy], references: [id])
+
+  createdAt  DateTime @default(now())
+}
+
+
+
+
